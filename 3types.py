@@ -1,21 +1,16 @@
 import random
-
-
-def f_rec_sum(num_list):
-    if len(num_list) == 1:
-        return num_list[0]
-    else:
-        return num_list[0] + f_rec_sum(num_list[1:])
-
+import copy
 
 def stopwatch(f):
     import time
 
-    def wrapper():
-        start = time.time()
-        f()
-        end = time.time()
-        print(end - start)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter_ns()
+        result = f(*args, **kwargs)
+        end = time.perf_counter_ns()
+        print(f"Func: {f.__name__}; Time: {end - start} ns.")
+        return result
+
     return wrapper
 
 
@@ -24,27 +19,38 @@ rnd_nums = random.sample(range(1000), count)
 
 
 @stopwatch
-def summing_with_for():
-    for_sum = 0
-    for i in range(count):
-        for_sum += rnd_nums[i]
-    print(for_sum)
+def summing_with_for(l):
+    res = 0
+    for el in l:
+        res += el
+    return res
+
 
 @stopwatch
-def summing_with_while():
-    while_sum = 0
-    i = 0
-    while i < count:
-        while_sum += rnd_nums[i]
-        i += 1
-    print(while_sum)
+def summing_with_while(l):
+    l = copy.copy(l)
+    res = 0
+    while len(l) > 0:
+        res += l.pop()
+    return res
+
 
 @stopwatch
-def summing_recursive():
-    recursive_sum = f_rec_sum(rnd_nums)
-    print(recursive_sum)
+def summing_recursive(l):
+    l = copy.copy(l)
+
+    def f_rec_sum(*args):
+        if len(l) == 0:
+            return 0
+        return l.pop() + f_rec_sum(l)
+
+    return f_rec_sum(l)
 
 
-summing_with_for()
-summing_with_while()
-summing_recursive()
+@stopwatch
+def summing_with_sum(l):
+    return sum(l)
+
+
+for f in [summing_with_for, summing_with_while, summing_recursive, summing_with_sum]:
+    print(f(rnd_nums))
